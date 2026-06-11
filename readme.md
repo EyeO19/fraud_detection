@@ -1,56 +1,178 @@
-Fraud Detection
+# Fraud Detection
 
-My clustering constructor starts after I validate my corner cases, speciifcally
-when I create my EdgeWeightGraph with m vertices to repesent each location.
-For every pair of locations, I calculated the Euclidean distance and add an edge
-with that distance as the weight. Continuing on, I use te KruskaMST to find the
-MST of the complete graph, where we have m-1 edges. After this, I store all the
-MST edges into an array and sort them from: heaviest first, to the smallest at
-the end(descending). We do it like this so we can easily remove the heaviest
-edges and breaks the tree into k components. After this, I create another
-EdgeWeightedGraph with just (m-k) lightest edges and then use the Connected
-Components class (CC) to find the connected components, with each component
-representing one cluster(for locations). Then I store the cluster ID for each
-location in my clusterID array.
+Classifies credit-card transactions as legitimate (0) or fraudulent (1) by combining geographic clustering for dimensionality reduction with an AdaBoost-style ensemble of weighted decision stumps. Built for reviewers who want a compact Java algorithms project with a runnable demo and optional visualization.
 
-I implemented the WeakLearner constructor by using a search to find the best
-decision (marginally better than 50 percent). Specifically, after adding my
-corner cases I use multiple nested for loops, where the overall goal is to collect
-the unique values in the dimension for each distinct coordinate point, and to
-assign it a unique value. The outer loops tries every dimension d from 0 to k-1.
-The unique values are collected in a HashSet that appear in our 2D input array.
-We only test for actual values since we can't check all numbers(too much time
-complexity). Finally, For each combination of dp, vp, and sp(1 or 0), and use
-our makePrediction method and calculate the weighted accuracy. If prediction ==
-label, then that point's weight is added to the score. The best score is kept
-in a variable and updated whenever another 'best' is found.
+**Author:** [YOUR NAME] · [YOUR LINKEDIN OR GITHUB URL]
 
-Personally with the data sets that I tested, the highest accuracy I was able to
-find was 100% and the time was  0.947 seconds. The specific trial I used to
-get this number was k = 25 and T = 300.
+---
 
-1. My specific strategy wasn't too calculated. I knew that my highest k value
-would be 30 (31 lines in test/training) so I chose values that ranged from 1 to
-30. I added the time command to the terminal, used the unit tests given to us in
-the assignment, and started pugging in different T values, from 5 up to 3000.
-I did this with numerous different T values and k values. Once I got to a combo
-that took me very close to 10 seconds, I started to look at the data sets that
-I had created. By comparing all my results, I was able to see an accuracy of
-even 100%.
+## Key features
 
-2. Small T leads to low test accuracy, because when T is small, there isn't
-enough time to correct and fix the mistakes made by the earlier weak learners.
-As a result, the data isn't fully represented since it doesn't have enough data
-to clean everything out properly.Thus, increaing the size of T usually
-improves the accuracy since the algorithm has more time to adjust the weights
-and refine the accuracies.
+- **Geographic clustering** — Builds a complete graph of merchant locations, computes a minimum spanning tree (Kruskal), removes the `k - 1` heaviest MST edges, and assigns each location to a cluster via connected components.
+- **Dimension reduction** — Aggregates per-location spending in a transaction into `k` cluster-level totals before classification.
+- **Weighted decision stumps** — Each weak learner picks a cluster dimension, integer threshold, and split direction to maximize weighted training accuracy.
+- **Boosting loop** — Trains stumps sequentially; misclassified points double in weight, then weights are renormalized. Final prediction is majority vote across all stumps (ties go to 0).
+- **2D stump visualizer** — Renders the decision boundary, labeled points, and stump parameters for 2-dimensional inputs (`WeakLearnerVisualizer`).
 
-3. If k is too small, then the low test accuracy could be rooted from different
-locations having to be assigned to the same cluster, messing with its accuracy.
-If it's too high, then there's too much extra space which creates noise (
-creating unncessary small clusters). Overall, once the size gets too big then
-the amount of useless info that is added with the large dimensions
-messes with accuracy.
+## Tech stack
 
-When we find a good middle ground, we're able to get dimensions large enough,
-while having enough weak learners to clean the data.
+| Component | Details |
+|-----------|---------|
+| Language | Java (no Maven/Gradle; flat source layout) |
+| External library | [Princeton `algs4`](https://algs4.cs.princeton.edu/code/) — `In`, `Point2D`, `EdgeWeightedGraph`, `KruskalMST`, `CC`, `StdDraw`, `StdOut`, `StdRandom` |
+| Library version | Not pinned in this repo; use the current `algs4.jar` from the Princeton site |
+| Build / run | `javac` and `java` with `algs4.jar` on the classpath |
+
+## Architecture
+
+```
+Transaction data (spend per location) + merchant coordinates + labels
+        │
+        ▼
+   DataSet ── loads training/test files
+        │
+        ▼
+   Clustering ── MST on locations → k clusters → reduceDimensions()
+        │
+        ▼
+   BoostingAlgorithm ── for T rounds:
+        │                  train WeakLearner on reweighted data
+        │                  double weights on mistakes, renormalize
+        ▼
+   predict() ── majority vote over T stumps on reduced features
+```
+
+| Class | Role |
+|-------|------|
+| `DataSet` | Parses dataset files into locations, labels, and transaction matrices |
+| `Clustering` | MST-based geographic clustering and feature reduction |
+| `WeakLearner` | Single decision stump trained on weighted data |
+| `BoostingAlgorithm` | Orchestrates clustering, boosting iterations, and prediction |
+| `WeakLearnerVisualizer` | StdDraw plot of one stump on 2D input (demo only) |
+
+## Demo / screenshots
+
+<!-- Replace the block below with your own image(s) or GIF -->
+
+**[ADD SCREENSHOT: WeakLearnerVisualizer output — run `java ... WeakLearnerVisualizer stump_2.txt`]**
+
+<!-- Optional second image -->
+**[ADD SCREENSHOT (optional): architecture diagram or BoostingAlgorithm terminal output]**
+
+<!-- Optional live demo -->
+**[ADD LIVE DEMO URL if you host one — otherwise delete this line]**
+
+## Setup
+
+### Prerequisites
+
+1. **JDK 8+** with `javac` and `java` on your `PATH`.
+2. **`algs4.jar`** from [Princeton Algorithms code page](https://algs4.cs.princeton.edu/code/). Typical install location:
+
+   ```
+   ~/algs4/algs4.jar
+   ```
+
+   Set an environment variable so commands below stay short (adjust the path if yours differs):
+
+   ```bash
+   export ALGS4=~/algs4/algs4.jar
+   ```
+
+### Compile
+
+From the repository root (all `.java` files are in this directory):
+
+```bash
+javac -cp "$ALGS4" *.java
+```
+
+## Run
+
+### Full fraud-detection pipeline
+
+`BoostingAlgorithm` expects four arguments: training file, test file, number of clusters `k`, and boosting rounds `T`.
+
+```bash
+java -cp ".:$ALGS4" BoostingAlgorithm small_training.txt small_test.txt 25 300
+```
+
+Example output:
+
+```
+Training accuracy of model: <float>
+Test accuracy of model: <float>
+```
+
+**Dataset files included in this repo**
+
+| File | Transactions | Locations | Notes |
+|------|-------------|-----------|-------|
+| `small_training.txt` / `small_test.txt` | 320 / 80 | 30 | Good default for a quick run |
+| `princeton_training.txt` / `princeton_test.txt` | 320 / 80 | 21 | Smaller location set |
+| `large_training.txt` / `large_test.txt` | 3200 / 800 | 30 | Larger files; slower runs |
+
+`k` must satisfy `1 ≤ k ≤` number of locations in the training file. `T` is the number of boosting iterations.
+
+### Visualize a decision stump (2D only)
+
+Input format: number of points, dimensions (must be `2`), coordinate rows, binary labels, then point weights.
+
+```bash
+java -cp ".:$ALGS4" WeakLearnerVisualizer stump_2.txt
+```
+
+Opens an StdDraw window with shaded regions, the split line, labeled points, and reported accuracy / stump parameters (`vp`, `dp`, `sp`).
+
+### Clustering smoke test
+
+`Clustering` generates random clustered locations and checks that points near the same center share a cluster ID.
+
+```bash
+java -cp ".:$ALGS4" Clustering 5 10
+```
+
+Prints `The test passed` on success.
+
+## Dataset file format
+
+Used by `DataSet` and `BoostingAlgorithm`:
+
+```
+n m
+<x_0> <y_0>
+...
+<x_{m-1}> <y_{m-1}>
+<label_0>
+...
+<label_{n-1}>
+<spend_0,0> <spend_0,1> ... <spend_0,m-1>
+...
+<spend_{n-1,0}> ... <spend_{n-1,m-1}>
+```
+
+- `n` — number of transactions  
+- `m` — number of merchant locations  
+- Next `m` lines — `(x, y)` coordinates for each location  
+- Next `n` lines — binary labels (`0` = legitimate, `1` = fraud)  
+- Remaining `n` lines — integer spending amount at each location per transaction  
+
+## Results and tuning notes
+
+On one tested configuration (`k = 25`, `T = 300`), the author reported **100% accuracy** in **~0.95 seconds** on a local machine. **[VERIFY AND SPECIFY WHICH DATASET — e.g. small_training / small_test]**
+
+General patterns observed during tuning:
+
+- **Small `T`** — Too few boosting rounds; the ensemble does not correct early stump mistakes, so test accuracy stays low.
+- **Large `T`** — More rounds let weights concentrate on hard examples; accuracy usually improves until runtime becomes a constraint.
+- **`k` too low** — Distinct geographic regions get merged into one cluster, blurring spending patterns.
+- **`k` too high** — Clusters become too fine-grained and add noise to reduced features.
+
+Hyperparameters were explored by sweeping `k` from 1 to 30 and `T` from 5 to 3000 against the bundled datasets, targeting runs under ~10 seconds.
+
+## Design notes
+
+- **Why MST clustering?** Merchant locations that are geographically close should contribute to the same reduced feature. MST plus removing heavy edges is a standard way to split a spatial graph into `k` components without fixing cluster shapes in advance.
+- **Why decision stumps?** Each weak learner only splits on one cluster-aggregated spending dimension at an integer threshold seen in training data, keeping each boosting step fast.
+- **Weight update rule** — Misclassified points double in weight (not full AdaBoost exponent update); weights are renormalized to sum to 1 after every iteration.
+- **Prediction tie-break** — If stumps vote equally for 0 and 1, the model returns 0.
