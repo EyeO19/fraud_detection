@@ -2,8 +2,6 @@
 
 Classifies credit-card transactions as legitimate (0) or fraudulent (1) by combining geographic clustering for dimensionality reduction with an AdaBoost-style ensemble of weighted decision stumps. Built for reviewers who want a compact Java algorithms project with a runnable demo and optional visualization.
 
-**Author:** [YOUR NAME] · [YOUR LINKEDIN OR GITHUB URL]
-
 ---
 
 ## Key features
