@@ -20,7 +20,6 @@ Classifies credit-card transactions as legitimate (0) or fraudulent (1) by combi
 |-----------|---------|
 | Language | Java (no Maven/Gradle; flat source layout) |
 | External library | [Princeton `algs4`](https://algs4.cs.princeton.edu/code/) — `In`, `Point2D`, `EdgeWeightedGraph`, `KruskalMST`, `CC`, `StdDraw`, `StdOut`, `StdRandom` |
-| Library version | Not pinned in this repo; use the current `algs4.jar` from the Princeton site |
 | Build / run | `javac` and `java` with `algs4.jar` on the classpath |
 
 ## Architecture
@@ -50,46 +49,7 @@ Transaction data (spend per location) + merchant coordinates + labels
 | `BoostingAlgorithm` | Orchestrates clustering, boosting iterations, and prediction |
 | `WeakLearnerVisualizer` | StdDraw plot of one stump on 2D input (demo only) |
 
-## Demo / screenshots
-
-<!-- Replace the block below with your own image(s) or GIF -->
-
-**[ADD SCREENSHOT: WeakLearnerVisualizer output — run `java ... WeakLearnerVisualizer stump_2.txt`]**
-
-<!-- Optional second image -->
-**[ADD SCREENSHOT (optional): architecture diagram or BoostingAlgorithm terminal output]**
-
-<!-- Optional live demo -->
-**[ADD LIVE DEMO URL if you host one — otherwise delete this line]**
-
-## Setup
-
-### Prerequisites
-
-1. **JDK 8+** with `javac` and `java` on your `PATH`.
-2. **`algs4.jar`** from [Princeton Algorithms code page](https://algs4.cs.princeton.edu/code/). Typical install location:
-
-   ```
-   ~/algs4/algs4.jar
-   ```
-
-   Set an environment variable so commands below stay short (adjust the path if yours differs):
-
-   ```bash
-   export ALGS4=~/algs4/algs4.jar
-   ```
-
-### Compile
-
-From the repository root (all `.java` files are in this directory):
-
-```bash
-javac -cp "$ALGS4" *.java
-```
-
-## Run
-
-### Full fraud-detection pipeline
+## Full fraud-detection pipeline
 
 `BoostingAlgorithm` expects four arguments: training file, test file, number of clusters `k`, and boosting rounds `T`.
 
@@ -128,10 +88,6 @@ Opens an StdDraw window with shaded regions, the split line, labeled points, and
 
 `Clustering` generates random clustered locations and checks that points near the same center share a cluster ID.
 
-```bash
-java -cp ".:$ALGS4" Clustering 5 10
-```
-
 Prints `The test passed` on success.
 
 ## Dataset file format
@@ -157,11 +113,9 @@ n m
 - Next `n` lines — binary labels (`0` = legitimate, `1` = fraud)  
 - Remaining `n` lines — integer spending amount at each location per transaction  
 
-## Results and tuning notes
+## Results / tuning notes
 
-On one tested configuration (`k = 25`, `T = 300`), the author reported **100% accuracy** in **~0.95 seconds** on a local machine. **[VERIFY AND SPECIFY WHICH DATASET — e.g. small_training / small_test]**
-
-General patterns observed during tuning:
+General patterns observed:
 
 - **Small `T`** — Too few boosting rounds; the ensemble does not correct early stump mistakes, so test accuracy stays low.
 - **Large `T`** — More rounds let weights concentrate on hard examples; accuracy usually improves until runtime becomes a constraint.
